@@ -112,7 +112,7 @@ export class MongoDBHandler {
       MongoClient.connect(
         connectionDomain,
         connectionOptions,
-        (err, client) => {
+        (err: any, client: MongoClient) => {
           if (err) {
             reject(err);
             return;
@@ -138,6 +138,14 @@ export class MongoDBHandler {
     } else {
       return false;
     }
+  };
+
+  /**
+   * Get the list of MongoDB databases. Contains DB name and DB data.
+   * @returns MongoDBInterface array
+   */
+  getDatabaseObjectList = (): MongoDBListInterface[] => {
+    return this.dbList;
   };
 
   /**
