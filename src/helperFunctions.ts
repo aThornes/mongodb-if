@@ -12,7 +12,7 @@ import { Db, MongoClient, MongoClientCommonOption } from 'mongodb';
 export const validateCommandParamPresence = (
   cmdParams: MongoDBCommandInterface,
   validationVal: number
-): Error => {
+): Error | null => {
   let failItem = '';
 
   const { dbName, collectionName, query, data, fieldName } = cmdParams;
@@ -29,6 +29,7 @@ export const validateCommandParamPresence = (
       `Command called with missing required parameter '${failItem}'`
     );
   }
+  return null;
 };
 
 /**

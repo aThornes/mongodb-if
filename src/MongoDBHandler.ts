@@ -31,9 +31,9 @@ const funcRequireVal = {
 };
 
 export class MongoDBHandler {
-  dbClientObj: MongoClient;
+  dbClientObj: MongoClient | null;
   dbObj: MongoDBInterface;
-  dbList: MongoDBListInterface[];
+  dbList: MongoDBListInterface[] | null;
   /**
    * Mongo Database Interface Handler - Handles all data communication between application and the MongoDB database
    * @param {MongoDBInterface} MongoData Connection Options
@@ -52,6 +52,9 @@ export class MongoDBHandler {
       connectionOptions,
       dbListOptions,
     };
+
+    this.dbClientObj = null;
+    this.dbList = null;
   }
 
   /**
@@ -60,6 +63,7 @@ export class MongoDBHandler {
    * @returns {Db} Database object
    */
   private getDB = (dbName: string): Db => {
+    if (!this.dbList) throw Error(`dbList is null`);
     if (dbName) {
       const obj = this.dbList.find((val) => val.name === dbName);
       if (obj) return obj.db;
@@ -89,6 +93,8 @@ export class MongoDBHandler {
   private getCollectionData = (commandArgs: MongoDBCommandInterface): any => {
     const { dbName, collectionName } = commandArgs;
 
+    if (!dbName) throw Error(`dbName is null`);
+
     this.checkConnectionActive();
 
     return this.getDB(dbName).collection(collectionName);
@@ -107,6 +113,8 @@ export class MongoDBHandler {
         dbNameList,
         dbListOptions,
       } = this.dbObj;
+
+      if (!dbListOptions) throw Error(`dbListOptions is null`);
 
       /* Attempt to connect to the MongoDB, returns success in promise */
       MongoClient.connect(
@@ -144,7 +152,7 @@ export class MongoDBHandler {
    * Get the list of MongoDB databases. Contains DB name and DB data.
    * @returns MongoDBInterface array
    */
-  getDatabaseObjectList = (): MongoDBListInterface[] => {
+  getDatabaseObjectList = (): MongoDBListInterface[] | null => {
     return this.dbList;
   };
 

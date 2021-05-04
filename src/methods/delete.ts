@@ -2,7 +2,7 @@ import { FilterQuery } from 'mongodb';
 
 export const deleteDataItemSingle = (
   collectionData: any,
-  query: FilterQuery
+  query: FilterQuery<any> | undefined
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
@@ -18,7 +18,7 @@ export const deleteDataItemSingle = (
 
 export const deleteDataItemMany = (
   collectionData: any,
-  query: FilterQuery
+  query: FilterQuery<any> | undefined
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     if (collectionData) {

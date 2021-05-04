@@ -2,11 +2,11 @@ import { FilterQuery } from 'mongodb';
 
 export const retrieveDataItem = (
   collectionData: any,
-  query: FilterQuery
+  query: FilterQuery<any> | undefined
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
-      collectionData.findOne(query, (err, result) => {
+      collectionData.findOne(query, (err: any, result: any) => {
         if (err) {
           reject(err);
           return;
@@ -19,7 +19,10 @@ export const retrieveDataItem = (
     } else resolve(null);
   });
 
-export const retrieveFieldList = (collectionData: any, fieldName: string) =>
+export const retrieveFieldList = (
+  collectionData: any,
+  fieldName: string | undefined
+) =>
   new Promise((resolve, reject) => {
     if (collectionData) {
       collectionData.distinct(fieldName, (err: any, result: any) => {

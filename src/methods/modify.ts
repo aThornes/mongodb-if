@@ -2,7 +2,7 @@ import { FilterQuery } from 'mongodb';
 
 export const modifyDataItemSingle = (
   collectionData: any,
-  query: FilterQuery,
+  query: FilterQuery<any> | undefined,
   data: any
 ): Promise<any> =>
   new Promise((resolve, reject) => {
