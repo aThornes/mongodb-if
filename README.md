@@ -9,7 +9,7 @@ The MongoDBHandler class is the core of the MongoDB interface, you can create th
     const DBHandler = MongoDBHandler({connectionDomain, connectionOptions, dbNameList, dbListOptions});
 
 or
-const DBHandler = MongoDBHandler(MongoDBInterface);
+    const DBHandler = MongoDBHandler(MongoDBInterface);
 
 ## Initialisation parameters
 
