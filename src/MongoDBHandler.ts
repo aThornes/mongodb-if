@@ -1,36 +1,39 @@
+import { Db, MongoClient, MongoClientCommonOption } from 'mongodb';
+
 import {
-  Db,
-  FilterQuery,
-  MongoClient,
-  MongoClientCommonOption,
-  MongoClientOptions,
-} from 'mongodb';
+  MongoDBInterface,
+  MongoDBListInterface,
+  MongoDBCommandInterface,
+} from './interfaces';
 
-export interface MongoDBInterface {
-  connectionDomain: string;
-  connectionOptions: MongoClientOptions;
-  dbNameList: string[];
-  dbListOptions?: MongoClientCommonOption[];
-}
+import { validateCommandParamPresence, getDBList } from './helperFunctions';
 
-export interface MongoDBListInterface {
-  name: string;
-  db: Db;
-}
+import { createDataItem } from './methods/create';
+import { deleteDataItemSingle, deleteDataItemMany } from './methods/delete';
+import { modifyDataItemSingle } from './methods/modify';
 
-export interface MongoDBCommandInterface {
-  dbName?: string;
-  collectionName: string;
-  query?: FilterQuery<any>;
-  data?: any;
-  fieldName?: string;
-}
+import { retrieveDataItem, retrieveFieldList } from './methods/retrieve';
+
+/**
+ * Required function level values
+ *
+ * Each bit refers to the interface MongoDBCommandInterface parameter
+ * - If a pameter is required, 1 should be passed
+ * - If not required, 0 should be passed
+ */
+const funcRequireVal = {
+  getDataItem: 0x01100,
+  addDataItem: 0x01010,
+  appendDataItem: 0x00010,
+  getFieldList: 0x01111,
+  deleteSingleItem: 0x01100,
+  deleteItemMany: 0x01100,
+};
 
 export class MongoDBHandler {
   dbClientObj: MongoClient;
   dbObj: MongoDBInterface;
   dbList: MongoDBListInterface[];
-
   /**
    * Mongo Database Interface Handler - Handles all data communication between application and the MongoDB database
    * @param {MongoDBInterface} MongoData Connection Options
@@ -52,31 +55,6 @@ export class MongoDBHandler {
   }
 
   /**
-   * Validate the caller includes the required parameters
-   */
-  private validateCommandParamPresence = (
-    cmdParams: MongoDBCommandInterface,
-    dbName?: boolean,
-    collectionName?: boolean,
-    query?: boolean,
-    data?: boolean,
-    fieldName?: boolean
-  ): Error => {
-    let failItem = null;
-    if (dbName && !cmdParams.dbName) failItem = 'dbName';
-    else if (collectionName && !cmdParams.collectionName)
-      failItem = 'collectionName';
-    else if (query && !cmdParams.query) failItem = 'query';
-    else if (data && !cmdParams.data) failItem = 'data';
-    else if (fieldName && !cmdParams.fieldName) failItem = 'fieldName';
-    if (failItem) {
-      return Error(
-        `Command called with missing required parameter '${failItem}'`
-      );
-    }
-  };
-
-  /**
    * Return the DB object matching the requested name, if no dbName is passed, take the first DB in list
    * @param dbName Name of database
    * @returns {Db} Database object
@@ -94,51 +72,6 @@ export class MongoDBHandler {
   };
 
   /**
-   * Retrieve a list of database objects based on the caller's parameters
-   * @param client MongoDB client
-   * @param dbList Array of database names
-   * @param dbOptions Array of database connection options
-   * @returns Array of MongoDBListInterface objects
-   */
-  private getDBList = (
-    client: MongoClient,
-    dbList: string[],
-    dbOptions: MongoClientCommonOption[]
-  ): MongoDBListInterface[] => {
-    const dbListObj: MongoDBListInterface[] = [];
-
-    /* Atleast one database must be specified */
-    if (!dbList || dbList.length === 0) {
-      throw Error(
-        'Attempted to connect to MongoDB without a specified database. Ensure atleast one database has been specified.'
-      );
-    }
-
-    /* Initialise database for each request in list */
-    for (let i = 0; i < dbList.length; i++) {
-      if (dbOptions && dbOptions.length >= i + 1) {
-        dbListObj.push({
-          name: dbList[i],
-          db: client.db(dbList[i], dbOptions[i]),
-        });
-      } else
-        dbListObj.push({
-          name: dbList[i],
-          db: client.db(dbList[i]),
-        });
-
-      /* Ensure the da */
-      if (!dbListObj[i] || !dbListObj[i].db) {
-        throw Error(
-          `Failed to establish a database connection to ${dbList[i]}`
-        );
-      }
-    }
-
-    return dbListObj;
-  };
-
-  /**
    * Confirm a connection to the DB has been made. Throws an error if no connection exists.
    */
   private checkConnectionActive = () => {
@@ -146,6 +79,19 @@ export class MongoDBHandler {
       throw Error(
         'Attempted to access Mongo DB database before connection has been established? Have you called MongoDBHandler.connect()?'
       );
+  };
+
+  /**
+   * Get the collection object
+   * @param commandArgs Caller command arguments
+   * @returns Collection Object
+   */
+  private getCollectionData = (commandArgs: MongoDBCommandInterface): any => {
+    const { dbName, collectionName } = commandArgs;
+
+    this.checkConnectionActive();
+
+    return this.getDB(dbName).collection(collectionName);
   };
 
   /**
@@ -173,7 +119,7 @@ export class MongoDBHandler {
           }
 
           /* Retrieve database objects for all requests databases */
-          this.dbList = this.getDBList(client, dbNameList, dbListOptions);
+          this.dbList = getDBList(client, dbNameList, dbListOptions);
 
           /* Store the client object under the class */
           this.dbClientObj = client;
@@ -204,34 +150,18 @@ export class MongoDBHandler {
    */
   getDataItem = (commandArgs: MongoDBCommandInterface): any =>
     new Promise((resolve, reject) => {
-      const err = this.validateCommandParamPresence(
+      const err = validateCommandParamPresence(
         commandArgs /* Command arguments */,
-        false /* Database name required */,
-        true /* Collection name required */,
-        true /* Query required */,
-        false /* Data required */
+        funcRequireVal.getDataItem
       );
 
-      if (err) reject(err);
+      if (err) throw err;
 
-      const { dbName, collectionName, query } = commandArgs;
+      const collectionData = this.getCollectionData(commandArgs);
 
-      this.checkConnectionActive();
-
-      const collectionData = this.getDB(dbName).collection(collectionName);
-
-      if (collectionData) {
-        collectionData.findOne(query, (err, result) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          if (result) {
-            resolve(result);
-          }
-          resolve(null);
-        });
-      } else resolve(null);
+      retrieveDataItem(collectionData, commandArgs.query)
+        .then((data) => resolve(data))
+        .catch((e) => reject(e));
     });
 
   /**
@@ -242,32 +172,18 @@ export class MongoDBHandler {
    */
   addDataItem = (commandArgs: MongoDBCommandInterface): any =>
     new Promise((resolve, reject) => {
-      const err = this.validateCommandParamPresence(
+      const err = validateCommandParamPresence(
         commandArgs /* Command arguments */,
-        false /* Database name required */,
-        true /* Collection name required */,
-        false /* Query required */,
-        true /* Data required */
+        funcRequireVal.addDataItem
       );
 
       if (err) reject(err);
 
-      const { dbName, collectionName, data } = commandArgs;
+      const collectionData = this.getCollectionData(commandArgs);
 
-      this.checkConnectionActive();
-
-      const collectionData = this.getDB(dbName).collection(collectionName);
-
-      if (collectionData) {
-        collectionData
-          .insertOne(data)
-          .then((dataItem) => {
-            resolve(dataItem);
-          })
-          .catch((e) => {
-            reject(e);
-          });
-      } else resolve(null);
+      createDataItem(collectionData, commandArgs.data)
+        .then((val) => resolve(val))
+        .catch((e) => reject(e));
     });
 
   /**
@@ -278,30 +194,20 @@ export class MongoDBHandler {
    */
   appendDataItem = (commandArgs: MongoDBCommandInterface): any =>
     new Promise((resolve, reject) => {
-      const err = this.validateCommandParamPresence(
+      const err = validateCommandParamPresence(
         commandArgs /* Command arguments */,
-        false /* Database name required */,
-        false /* Collection name required */,
-        false /* Query required */,
-        true /* Data required */
+        funcRequireVal.appendDataItem
       );
 
       if (err) reject(err);
 
-      const { dbName, collectionName, query, data } = commandArgs;
+      const collectionData = this.getCollectionData(commandArgs);
 
-      this.checkConnectionActive();
+      const { query, data } = commandArgs;
 
-      const collectionData = this.getDB(dbName).collection(collectionName);
-
-      if (collectionData) {
-        collectionData
-          .updateOne(query, { $set: data })
-          .then((dataItem) => {
-            resolve(dataItem);
-          })
-          .catch((e) => reject(e));
-      } else resolve(null);
+      modifyDataItemSingle(collectionData, query, data)
+        .then((val) => resolve(val))
+        .catch((e) => reject(e));
     });
 
   /**
@@ -312,37 +218,18 @@ export class MongoDBHandler {
    */
   getFieldList = (commandArgs: MongoDBCommandInterface): any =>
     new Promise((resolve, reject) => {
-      const err = this.validateCommandParamPresence(
+      const err = validateCommandParamPresence(
         commandArgs /* Command arguments */,
-        false /* Database name required */,
-        true /* Collection name required */,
-        true /* Query required */,
-        true /* Data required */,
-        true /* Field name required */
+        funcRequireVal.getFieldList
       );
 
       if (err) reject(err);
 
-      const { dbName, collectionName, fieldName } = commandArgs;
+      const collectionData = this.getCollectionData(commandArgs);
 
-      this.checkConnectionActive();
-
-      const collectionData = this.getDB(dbName).collection(collectionName);
-
-      if (collectionData) {
-        collectionData.distinct(fieldName, (err, result) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          if (result && Array.isArray(result)) {
-            const resultArr: any[] = [];
-
-            for (let n = 0; n < result.length; n++) resultArr.push(result[n]);
-            resolve(resultArr);
-          } else resolve(null);
-        });
-      } else resolve(null);
+      retrieveFieldList(collectionData, commandArgs.fieldName)
+        .then((val) => resolve(val))
+        .catch((e) => reject(e));
     });
 
   /**
@@ -353,32 +240,18 @@ export class MongoDBHandler {
    */
   deleteItemSingle = (commandArgs: MongoDBCommandInterface): any =>
     new Promise((resolve, reject) => {
-      const err = this.validateCommandParamPresence(
+      const err = validateCommandParamPresence(
         commandArgs /* Command arguments */,
-        false /* Database name required */,
-        true /* Collection name required */,
-        true /* Query required */,
-        false /* Data required */,
-        false /* Field name required */
+        funcRequireVal.deleteSingleItem
       );
 
       if (err) reject(err);
 
-      const { dbName, collectionName, query } = commandArgs;
+      const collectionData = this.getCollectionData(commandArgs);
 
-      this.checkConnectionActive();
-
-      const collectionData = this.getDB(dbName).collection(collectionName);
-
-      if (collectionData) {
-        collectionData.deleteOne(query, (err, result) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve(result);
-        });
-      } else resolve(null);
+      deleteDataItemSingle(collectionData, commandArgs.query)
+        .then((val) => resolve(val))
+        .catch((e) => reject(e));
     });
 
   /**
@@ -389,31 +262,17 @@ export class MongoDBHandler {
    */
   deleteItemMany = (commandArgs: MongoDBCommandInterface): any =>
     new Promise((resolve, reject) => {
-      const err = this.validateCommandParamPresence(
+      const err = validateCommandParamPresence(
         commandArgs /* Command arguments */,
-        false /* Database name required */,
-        true /* Collection name required */,
-        true /* Query required */,
-        false /* Data required */,
-        false /* Field name required */
+        funcRequireVal.deleteItemMany
       );
 
       if (err) reject(err);
 
-      const { dbName, collectionName, query } = commandArgs;
+      const collectionData = this.getCollectionData(commandArgs);
 
-      this.checkConnectionActive();
-
-      const collectionData = this.getDB(dbName).collection(collectionName);
-
-      if (collectionData) {
-        collectionData.deleteMany(query, (err, result) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-          resolve(result);
-        });
-      } else resolve(null);
+      deleteDataItemMany(collectionData, commandArgs.query)
+        .then((val) => resolve(val))
+        .catch((e) => reject(e));
     });
 }

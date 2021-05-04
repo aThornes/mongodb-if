@@ -1,9 +1,9 @@
+import { MongoDBHandler } from './src/MongoDBHandler';
 import {
-  MongoDBHandler,
   MongoDBInterface,
   MongoDBListInterface,
   MongoDBCommandInterface,
-} from './src/MongoDBHandler';
+} from './src/interfaces';
 
 /* Handler Class */
 export default MongoDBHandler;
