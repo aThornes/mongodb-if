@@ -7,8 +7,8 @@ A simple MongoDB interface library built upon the [mongodb library](https://www.
 The MongoDBHandler class is the core of the MongoDB interface, you can create the database interface instance using:
 
     const DBHandler = MongoDBHandler({connectionDomain, connectionOptions, dbNameList, dbListOptions});
-
 or
+
     const DBHandler = MongoDBHandler(MongoDBInterface);
 
 ## Initialisation parameters
