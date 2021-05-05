@@ -1,4 +1,4 @@
-const MongoDBHandler = require('../dist/index');
+const { MongoDBHandler } = require('../dist/index');
 
 const handlerOptions = {
   connectionDomain: 'mongodb://127.0.0.1:27017',
