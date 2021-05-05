@@ -2,6 +2,7 @@
 .eslintrc.json
 .gitignore
 .prettierrc
+index.ts
 CODE_OF_CONDUCT.md
 LICENSE
 package-lock.json

@@ -1,12 +1,4 @@
-import { MongoDBHandler } from './src/MongoDBHandler';
-import {
-  MongoDBInterface,
-  MongoDBListInterface,
-  MongoDBCommandInterface,
-} from './src/interfaces';
+import MongoDBHandler from './src/MongoDBHandler';
 
 /* Handler Class */
 export default MongoDBHandler;
-
-/* Interface Types */
-export { MongoDBInterface, MongoDBListInterface, MongoDBCommandInterface };

@@ -29,8 +29,7 @@ const funcRequireVal = {
   deleteSingleItem: 0x01100,
   deleteItemMany: 0x01100,
 };
-
-export class MongoDBHandler {
+class MongoDBHandler {
   dbClientObj: MongoClient | null;
   dbObj: MongoDBInterface;
   dbList: MongoDBListInterface[] | null;
@@ -93,11 +92,17 @@ export class MongoDBHandler {
   private getCollectionData = (commandArgs: MongoDBCommandInterface): any => {
     const { dbName, collectionName } = commandArgs;
 
-    if (!dbName) throw Error(`dbName is null`);
-
     this.checkConnectionActive();
 
-    return this.getDB(dbName).collection(collectionName);
+    let useDB = dbName;
+
+    if (!useDB && this.dbList && this.dbList[0]) {
+      useDB = this.dbList[0].name;
+    }
+
+    if (!useDB) throw Error(`databaseName is null`);
+
+    return this.getDB(useDB).collection(collectionName);
   };
 
   /**
@@ -114,7 +119,7 @@ export class MongoDBHandler {
         dbListOptions,
       } = this.dbObj;
 
-      if (!dbListOptions) throw Error(`dbListOptions is null`);
+      if (!dbNameList) throw Error(`dbNameList is null`);
 
       /* Attempt to connect to the MongoDB, returns success in promise */
       MongoClient.connect(
@@ -127,13 +132,14 @@ export class MongoDBHandler {
           }
 
           /* Retrieve database objects for all requests databases */
-          this.dbList = getDBList(client, dbNameList, dbListOptions);
+          this.dbList = getDBList(client, dbNameList, dbListOptions || []);
 
           /* Store the client object under the class */
           this.dbClientObj = client;
 
-          if (this.dbClientObj) resolve(true);
-          else resolve(false);
+          if (this.dbClientObj) {
+            resolve(true);
+          } else resolve(false);
         }
       );
     });
@@ -292,3 +298,5 @@ export class MongoDBHandler {
         .catch((e) => reject(e));
     });
 }
+
+export default MongoDBHandler;

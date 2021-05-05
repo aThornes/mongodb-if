@@ -1,10 +1,25 @@
-import {
-  MongoDBInterface,
-  MongoDBListInterface,
-  MongoDBCommandInterface,
-} from './interfaces';
+import { MongoDBListInterface, MongoDBCommandInterface } from './interfaces';
+import { MongoClient, MongoClientCommonOption } from 'mongodb';
 
-import { Db, MongoClient, MongoClientCommonOption } from 'mongodb';
+const hasValue = (val: any): boolean => {
+  if (val === undefined || val === null) return false;
+  return true;
+};
+
+const validation = {
+  dbName: 0x10000,
+  collectionName: 0x01000,
+  query: 0x00100,
+  data: 0x00010,
+  fieldName: 0x00001,
+};
+
+const isValid = (value: any, validation: number, validationCheck: number) => {
+  if (validation & validationCheck) {
+    if (!hasValue(value)) return false;
+  }
+  return true;
+};
 
 /**
  * Validate the caller includes the required parameters
@@ -14,15 +29,15 @@ export const validateCommandParamPresence = (
   validationVal: number
 ): Error | null => {
   let failItem = '';
-
   const { dbName, collectionName, query, data, fieldName } = cmdParams;
 
-  if (dbName && validationVal | 0x10000) failItem = '\ndbName';
-  if (collectionName && validationVal | 0x01000)
-    failItem = '\ndbcollectionName';
-  if (query && validationVal | 0x00100) failItem = '\nquery';
-  if (data && validationVal | 0x10010) failItem = '\ndata';
-  if (fieldName && validationVal | 0x10001) failItem = '\nfieldName';
+  if (!isValid(dbName, validationVal, validation.dbName)) failItem = '\ndbName';
+  if (!isValid(collectionName, validationVal, validation.collectionName))
+    failItem = '\ncollectionName';
+  if (!isValid(query, validationVal, validation.query)) failItem = '\nquery';
+  if (!isValid(data, validationVal, validation.data)) failItem = '\ndata';
+  if (!isValid(fieldName, validationVal, validation.fieldName))
+    failItem = '\nfieldName';
 
   if (failItem.length > 0) {
     return Error(
@@ -66,7 +81,7 @@ export const getDBList = (
         db: client.db(dbList[i]),
       });
 
-    /* Ensure the da */
+    /* Ensure connection to DB was established */
     if (!dbListObj[i] || !dbListObj[i].db) {
       throw Error(`Failed to establish a database connection to ${dbList[i]}`);
     }
