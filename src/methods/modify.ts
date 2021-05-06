@@ -15,3 +15,19 @@ export const modifyDataItemSingle = (
         .catch((e: any) => reject(e));
     } else resolve(null);
   });
+
+export const renameCol = (
+  collectionData: any,
+  field: string | undefined,
+  options: any
+): Promise<any> =>
+  new Promise((resolve, reject) => {
+    if (collectionData || !field) {
+      collectionData
+        .rename(field, options)
+        .then((success: any) => {
+          resolve(success);
+        })
+        .catch((e: any) => reject(e));
+    } else resolve(null);
+  });

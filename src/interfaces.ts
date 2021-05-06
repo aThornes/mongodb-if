@@ -23,4 +23,5 @@ export interface MongoDBCommandInterface {
   query?: FilterQuery<any>;
   data?: any;
   fieldName?: string;
+  options?: any;
 }

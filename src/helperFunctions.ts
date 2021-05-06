@@ -7,11 +7,12 @@ const hasValue = (val: any): boolean => {
 };
 
 const validation = {
-  dbName: 0x10000,
-  collectionName: 0x01000,
-  query: 0x00100,
-  data: 0x00010,
-  fieldName: 0x00001,
+  dbName: 0x100000,
+  collectionName: 0x010000,
+  query: 0x001000,
+  data: 0x000100,
+  fieldName: 0x000010,
+  options: 0x000001,
 };
 
 const isValid = (value: any, validation: number, validationCheck: number) => {
