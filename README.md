@@ -22,7 +22,7 @@ or
       dbNameList: ['DB1', 'DB2'],
       dbListOptions: [{ replicaSet: 'myRepl' }],
 
-    const DBHandler = MongoDBHandler(MongoDBInterface);
+    const DBHandler = MongoDBHandler(handlerOptions);
 
 ## Initialisation parameters
 
