@@ -50,11 +50,11 @@ Returns boolean Success
 Get the list of associated databases, includes name and database object
 Returns MongoDBListInterface[] Database list
 
-### getDatabaseClient
+### getDatabaseClient()
 
 Return the MongoDB Client Object. Typically used for MongoDB commands that are not supported under this library (however issues and PRs are appreciated)
 
-### getDatabaseObject
+### getDatabaseObject(string)
 
 Return a MongoDB Database Object. Typically used for MongoDB commands that are not supported under this library (however issues and PRs are appreciated)
 
