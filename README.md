@@ -2,6 +2,10 @@
 
 A simple MongoDB interface library built upon the [mongodb library](https://www.npmjs.com/package/mongodb)
 
+[![npm](https://img.shields.io/npm/v/mongodb-if?color=red)](https://www.npmjs.com/package/mongodb-if)
+[![npm bundle size](https://img.shields.io/bundlephobia/min/mongodb-if)](https://www.npmjs.com/package/mongodb-if)
+[![npm downloads](https://img.shields.io/npm/dt/mongodb-if?color=blue)](https://www.npmjs.com/package/mongodb-if)
+
 ## Initialise
 
 The MongoDBHandler class is the core of the MongoDB interface, you can create the database interface instance using:
