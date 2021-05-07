@@ -7,7 +7,13 @@ const handlerOptions = {
     useUnifiedTopology: true,
   },
   dbNameList: ['TestDB'],
+  dbListOptions: [{ replicaSet: 'myRepl' }],
 };
+
+console.log(
+  typeof handlerOptions.dbListOptions,
+  Array.isArray(handlerOptions.dbListOptions)
+);
 
 const runTest = async () => {
   /* The name of our database collection within TestDB (Note if this does not exist, it will be automatically created when a data item is added!) */

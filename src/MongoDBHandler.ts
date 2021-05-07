@@ -68,7 +68,7 @@ class MongoDBHandler {
     if (!Array.isArray(dbNameList) || dbNameList.length === 0)
       throw Error(`dbNameList must be an array and contain atleast one value`);
 
-    if (dbListOptions && Array.isArray(dbListOptions))
+    if (dbListOptions && !Array.isArray(dbListOptions))
       throw Error(`dbListOptions must be an array`);
 
     this.dbObj = {
