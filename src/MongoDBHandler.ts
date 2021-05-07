@@ -87,7 +87,7 @@ class MongoDBHandler {
    * @param dbName Name of database
    * @returns {Db} Database object
    */
-  private getDB = (dbName: string): Db => {
+  private getDB = (dbName?: string): Db => {
     if (!this.dbList) throw Error(`dbList is null`);
     if (dbName) {
       const obj = this.dbList.find((val) => val.name === dbName);
@@ -191,6 +191,31 @@ class MongoDBHandler {
    */
   getDatabaseObjectList = (): MongoDBListInterface[] | null => {
     return this.dbList;
+  };
+
+  /**
+   * Return the MongoDB Client Object.
+   * Typically used for MongoDB commands that are not supported under this library.
+   *
+   * However rising an issue or a pull request for additional functionality would be appreciated to
+   * improve this library.
+   * @returns MongoClient object (or null if not instantiated)
+   */
+  getDatabaseClient = (): MongoClient | null => {
+    return this.dbClientObj;
+  };
+
+  /**
+   * Return the database object.
+   * Typically used for MongoDB commands that are not supported under this library.
+   *
+   * However rising an issue or a pull request for additional functionality would be appreciated to
+   * improve this library.
+   * @param databaseName Name of the database (if no value is provided, the first (or only) in list will be returned )
+   * @returns Database object
+   */
+  getDatabaseObject = (databaseName?: string): Db => {
+    return this.getDB(databaseName);
   };
 
   /**

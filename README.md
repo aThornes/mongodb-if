@@ -27,70 +27,78 @@ or
 
 All the following command have the optional argument `dbName` (note: if this is not provided, the first (or only) database in list will be selected)
 
-- connect()
+### connect()
 
 Establish a connection to each of the requested databases
 Returns Promise<boolean> Success
 
-- disconnect()
+### disconnect()
 
 Close a connection to all databases
 Returns boolean Success
 
-- getDatabaseObjectList() :MongoDBListInterface[]
+### getDatabaseObjectList() :MongoDBListInterface[]
 
 Get the list of associated databases, includes name and database object
 Returns MongoDBListInterface[] Database list
 
-- getDataItem(MongoDBCommandInterface)
+### getDatabaseClient
+
+Return the MongoDB Client Object. Typically used for MongoDB commands that are not supported under this library (however issues and PRs are appreciated)
+
+### getDatabaseObject
+
+Return a MongoDB Database Object. Typically used for MongoDB commands that are not supported under this library (however issues and PRs are appreciated)
+
+### getDataItem(MongoDBCommandInterface)
 
 Retrieve a data item, Command arguments, Required: `collectionName` and `Query`
 
-- addDataItem(MongoDBCommandInterface)
+### addDataItem(MongoDBCommandInterface)
 
 Add a data item, Command arguments, Required: `collectionName` and `data`, Optional: `options`
 
-- addMultipleDataItems(MongoDBCommandInterface)
+### addMultipleDataItems(MongoDBCommandInterface)
 
 Add multiple data items, Command arguments, Required: `collectionName` and `data`, Optional: `options`
 
-- modifyDataItem(MongoDBCommandInterface)
+### modifyDataItem(MongoDBCommandInterface)
 
 Append to a data item, Command arguments, Required: `collectionName`, `query` and `Data`, Optional: `options`
 
-- countDataItems(MongoDBCommandInterface)
+### countDataItems(MongoDBCommandInterface)
 
 Determine number of data items in the database collection, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
-- isCapped(MongoDBCommandInterface)
+### isCapped(MongoDBCommandInterface)
 
 Returns whether the collection is capped or not, Command arguments, Required: `collectionName`, Optional: `options`
 
-- getOptions(MongoDBCommandInterface)
+### getOptions(MongoDBCommandInterface)
 
 Returns collection options, Command arguments, Required: `collectionName`, Optional: `options`
 
-- getFieldList(MongoDBCommandInterface)
+### getFieldList(MongoDBCommandInterface)
 
 Retrieve every value with the matching field (database key) as a list, Command arguments, Required: `collectionName` & `fieldName`, Optional: `options`
 
-- getIndexes(MongoDBCommandInterface)
+### getIndexes(MongoDBCommandInterface)
 
 Returns an array that holds a list of documents that identify and describe the existing indexes on the collection, Command arguments, Required: `collectionName`, Optional: `options`
 
-- renameCollection(MongoDBCommandInterface)
+### renameCollection(MongoDBCommandInterface)
 
 Rename a collection Command arguments, Required: `collectionName`, `fieldName` (new collection name), Optional: `options`
 
-- deleteItemSingle(MongoDBCommandInterface)
+### deleteItemSingle(MongoDBCommandInterface)
 
 Delete a single item as defined by the passed query, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
-- deleteItemMany(MongoDBCommandInterface)
+### deleteItemMany(MongoDBCommandInterface)
 
 Delete all items matching the passed query, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
-- dropCollection(MongoDBCommandInterface)
+### dropCollection(MongoDBCommandInterface)
 
 Drop the entire collection, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
@@ -103,7 +111,3 @@ Drop the entire collection, Command arguments, Required: `collectionName` & `que
 ## Examples
 
 See [Library Test](https://github.com/aThornes/mongodb-if/tree/master/test) for some basic usage examples.
-
-# Development
-
-This is currently still work in progress and more functionality will be added shortly.
