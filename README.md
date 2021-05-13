@@ -6,6 +6,10 @@ A simple MongoDB interface library built upon the [mongodb library](https://www.
 [![npm bundle size](https://img.shields.io/bundlephobia/min/mongodb-if)](https://www.npmjs.com/package/mongodb-if)
 [![npm downloads](https://img.shields.io/npm/dt/mongodb-if?color=blue)](https://www.npmjs.com/package/mongodb-if)
 
+## Import
+
+    import { MongoDBHandler } from 'mongodb-if'
+
 ## Initialise
 
 The MongoDBHandler class is the core of the MongoDB interface, you can create the database interface instance using:
@@ -29,7 +33,7 @@ or
 - `connectionDomain` refers to your MongoDB connection string, a typical connection string might be `mongodb://127.0.0.1:27017`
 - `connectionOptions` refer to your MongoDB connection options which can be found under MongoDBClient documentation and are defined by the interface `MongoClientOptions`
 - `dbNameList` is a string array containing the names of each database you wish to connect to.
-- `dbListOptions` is a `MongoClientCommonOption` array containing the connection parameters for each database in `dbNameList` (see [Connection string options](https://docs.mongodb.com/manual/reference/connection-string/#std-label-connections-connection-options)
+- `dbListOptions` is a `MongoClientCommonOption` array containing the connection parameters for each database in `dbNameList` (see [Connection string options](https://docs.mongodb.com/manual/reference/connection-string/#std-label-connections-connection-options))
 
 ## Available Functions
 
