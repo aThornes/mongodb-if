@@ -53,12 +53,8 @@ class MongoDBHandler {
    * @param {MongoDBInterface} MongoData Connection Options
    */
   constructor(MongoData: MongoDBInterface) {
-    const {
-      connectionDomain,
-      connectionOptions,
-      dbNameList,
-      dbListOptions,
-    } = MongoData;
+    const { connectionDomain, connectionOptions, dbNameList, dbListOptions } =
+      MongoData;
 
     /* Required domain, can include authentication params such e.g. admin:password@mongodb://127.0.0.1:27017 */
     if (!connectionDomain)
@@ -139,12 +135,8 @@ class MongoDBHandler {
   connect = (): Promise<boolean> =>
     new Promise((resolve, reject) => {
       /* Destructure Interface */
-      const {
-        connectionDomain,
-        connectionOptions,
-        dbNameList,
-        dbListOptions,
-      } = this.dbObj;
+      const { connectionDomain, connectionOptions, dbNameList, dbListOptions } =
+        this.dbObj;
 
       if (!dbNameList) throw Error(`dbNameList cannot be ${dbNameList}`);
 
@@ -214,8 +206,12 @@ class MongoDBHandler {
    * @param databaseName Name of the database (if no value is provided, the first (or only) in list will be returned )
    * @returns Database object
    */
-  getDatabaseObject = (databaseName?: string): Db => {
-    return this.getDB(databaseName);
+  getDatabaseObject = (databaseName?: string): Db | null => {
+    try {
+      return this.getDB(databaseName);
+    } catch {
+      return null;
+    }
   };
 
   /**
