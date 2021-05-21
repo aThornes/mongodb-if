@@ -54,6 +54,12 @@ const runTest = async () => {
     .then((val) => console.log(`${val} data items found in ${collectionName}`))
     .catch((e) => console.error(e));
 
+  /* Get a list of all names in DB */
+  await handler
+    .getFieldList({ collectionName, fieldName: 'name' })
+    .then((val) => console.log(val))
+    .catch((e) => console.error(e));
+
   /* Drop the collection */
   // await handler
   //   .dropCollection({ collectionName })

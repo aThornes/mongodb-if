@@ -38,7 +38,7 @@ const funcRequireVal = {
   appendDataItem: 0x010100,
   isCapped: 0x010000,
   countDataItems: 0x010000,
-  getFieldList: 0x011110,
+  getFieldList: 0x010010,
   deleteSingleItem: 0x011000,
   deleteItemMany: 0x011000,
   dropCollection: 0x010000,
