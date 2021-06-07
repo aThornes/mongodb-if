@@ -90,3 +90,7 @@ export const getDBList = (
 
   return dbListObj;
 };
+
+export const isNumeric = (n: any) => {
+  return !isNaN(parseFloat(n)) && isFinite(n);
+};

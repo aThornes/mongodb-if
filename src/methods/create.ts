@@ -33,3 +33,21 @@ export const createDataItemMany = (
         });
     } else resolve(null);
   });
+
+export const newCollection = (
+  databaseObject: any,
+  collectionName: any,
+  options: any
+) =>
+  new Promise((resolve, reject) => {
+    if (databaseObject) {
+      databaseObject
+        .createCollection(collectionName, options)
+        .then((dataItem: any) => {
+          resolve(dataItem);
+        })
+        .catch((e: any) => {
+          reject(e);
+        });
+    } else resolve(null);
+  });

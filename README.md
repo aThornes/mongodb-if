@@ -66,6 +66,10 @@ Return a MongoDB Database Object. Typically used for MongoDB commands that are n
 
 Retrieve a data item, Command arguments, Required: `collectionName` and `Query`
 
+### getDataItemsMany(MongoDBCommandInterface)
+
+Retrieve multiple data items, Command arguments, Required: `collectionName`, Optional: `Query`
+
 ### addDataItem(MongoDBCommandInterface)
 
 Add a data item, Command arguments, Required: `collectionName` and `data`, Optional: `options`
@@ -80,7 +84,7 @@ Append to a data item, Command arguments, Required: `collectionName`, `query` an
 
 ### countDataItems(MongoDBCommandInterface)
 
-Determine number of data items in the database collection, Command arguments, Required: `collectionName` & `query`, Optional: `options`
+Determine number of data items in the database collection, Command arguments, Required: `collectionName`, Optional: `query` & `options`
 
 ### isCapped(MongoDBCommandInterface)
 
@@ -109,6 +113,14 @@ Delete a single item as defined by the passed query, Command arguments, Required
 ### deleteItemMany(MongoDBCommandInterface)
 
 Delete all items matching the passed query, Command arguments, Required: `collectionName` & `query`, Optional: `options`
+
+### doesCollectionExist(MongoDBCommandInterface)
+
+Check if a collection exists in the DB, Command arguments, Required: `collectionName`
+
+### createCollection(MongoDBCommandInterface)
+
+Create a new collection, Command arguments, Required: `collectionName`, Optional: `options`
 
 ### dropCollection(MongoDBCommandInterface)
 

@@ -19,6 +19,31 @@ export const retrieveDataItem = (
     } else resolve(null);
   });
 
+export const retrieveDataItemMany = (
+  collectionData: any,
+  query: FilterQuery<any> | undefined
+): Promise<any[] | null> =>
+  new Promise((resolve, reject) => {
+    if (collectionData) {
+      try {
+        collectionData.find(query, (err: any, cursor: any) => {
+          if (err) {
+            reject(err);
+            return;
+          }
+
+          if (cursor) {
+            cursor.toArray().then((arr: any) => {
+              resolve(arr);
+            });
+          } else resolve(null);
+        });
+      } catch (e) {
+        reject(e);
+      }
+    } else resolve(null);
+  });
+
 export const retrieveFieldList = (
   collectionData: any,
   fieldName: string | undefined,
@@ -79,6 +104,28 @@ export const getIndexList = (collectionData: any, options: any): Promise<any> =>
       });
     } else resolve(null);
   });
+
+export const isCollectionPresent = (
+  databaseObject: any,
+  collectionName: string
+): boolean => {
+  if (databaseObject) {
+    const colFound = databaseObject.collection(collectionName);
+    if (colFound) return true;
+  }
+  return false;
+};
+// new Promise((resolve, reject) => {
+//   if (databaseObject) {
+//     databaseObject
+//       .collection(collectionName)
+//       .then((val: any) => {
+//         if (val) resolve(true);
+//         else resolve(false);
+//       })
+//       .catch((e: any) => reject(e));
+//   }
+// });
 
 export const isCollectionCapped = (
   collectionData: any,
