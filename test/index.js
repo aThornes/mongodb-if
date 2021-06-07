@@ -88,15 +88,81 @@ const runTest = async () => {
     .then((val) => console.log(val))
     .catch((e) => console.error(e));
 
-  /* Rename the collection */
-  await handler
-    .renameCollection({ collectionName, fieldName: 'Test2Collection' })
-    .then((val) =>
-      console.log(
-        `${val ? 'Succesfully renamed' : 'Failed to rename'} the collection`
+  const destExists = await handler.doesCollectionExist({
+    collectionName: 'Test2Collection',
+  });
+
+  if (!destExists) {
+    /* Rename the collection */
+    await handler
+      .renameCollection({ collectionName, fieldName: 'Test2Collection' })
+      .then((val) =>
+        console.log(
+          `${val ? 'Succesfully renamed' : 'Failed to rename'} the collection`
+        )
       )
-    )
-    .catch((e) => console.error(e));
+      .catch((e) => console.error(e));
+  }
+
+  /* Create a new capped collection */
+  const colExists = await handler.doesCollectionExist({
+    collectionName: 'cappedCollection',
+  });
+
+  if (!colExists) {
+    await handler
+      .createCollection({
+        collectionName: 'cappedCollection',
+        options: {
+          capped: true,
+          size: 1028,
+          max: 40,
+        },
+      })
+      .then((val) => {
+        console.log(
+          `${val ? 'Succesfully created' : 'Failed to create'} the collection`
+        );
+      });
+  }
+
+  const curDate = new Date();
+
+  /* Add records to the collection */
+  await handler
+    .addMultipleDataItems({
+      collectionName: 'cappedCollection',
+      data: [
+        { name: 'test1', timestamp: curDate },
+        { name: 'test2', timestamp: new Date(curDate.getTime() + 1000) },
+        { name: 'test3', timestamp: new Date(curDate.getTime() + 2000) },
+        { name: 'test4', timestamp: new Date(curDate.getTime() + 3000) },
+      ],
+    })
+    .then((val) => {
+      console.log(
+        `${val ? 'Succesfully added' : 'Failed to add'} the collection data`
+      );
+    });
+
+  /* Get 3 most recent records */
+  await handler
+    .getDataItemsMany({
+      collectionName: 'cappedCollection',
+    })
+    .then((resp) => {
+      console.log('3 most recent records');
+
+      /* Sort collection (newest first) */
+      resp.sort((a, b) => {
+        const x = a.timestamp;
+        const y = b.timestamp;
+        return x < y ? 1 : x > y ? -1 : 0;
+      });
+
+      /* Display first 3 */
+      console.log(resp.slice(0, 3));
+    });
 
   process.exit();
 };

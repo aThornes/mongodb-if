@@ -8,7 +8,11 @@ import {
 
 import { validateCommandParamPresence, getDBList } from './helperFunctions';
 
-import { createDataItem } from './methods/create';
+import {
+  createDataItem,
+  createDataItemMany,
+  newCollection,
+} from './methods/create';
 import {
   deleteDataItemSingle,
   deleteDataItemMany,
@@ -21,7 +25,9 @@ import {
   getCollectionOptions,
   getIndexList,
   isCollectionCapped,
+  isCollectionPresent,
   retrieveDataItem,
+  retrieveDataItemMany,
   retrieveFieldList,
 } from './methods/retrieve';
 
@@ -34,15 +40,18 @@ import {
  */
 const funcRequireVal = {
   getDataItem: 0x011000,
+  getDataItemsMany: 0x010000,
+  getRecentItems: 0x010100,
   addDataItem: 0x010100,
-  appendDataItem: 0x010100,
+  appendDataItem: 0x011100,
   isCapped: 0x010000,
   countDataItems: 0x010000,
   getFieldList: 0x010010,
+  getIndices: 0x010000,
   deleteSingleItem: 0x011000,
   deleteItemMany: 0x011000,
-  dropCollection: 0x010000,
-  getIndices: 0x010000,
+  dropCollection: 0x011000,
+  createCollection: 0x010000,
 };
 class MongoDBHandler {
   dbClientObj: MongoClient | null;
@@ -106,17 +115,10 @@ class MongoDBHandler {
       );
   };
 
-  /**
-   * Get the collection object
-   * @param commandArgs Caller command arguments
-   * @returns Collection Object
-   */
-  private getCollectionData = (commandArgs: MongoDBCommandInterface): any => {
-    const { dbName, collectionName } = commandArgs;
-
+  private getDBName = (commandArgs: MongoDBCommandInterface): any => {
     this.checkConnectionActive();
 
-    let useDB = dbName;
+    let useDB = commandArgs.dbName;
 
     if (!useDB && this.dbList && this.dbList[0]) {
       useDB = this.dbList[0].name;
@@ -124,7 +126,29 @@ class MongoDBHandler {
 
     if (!useDB) throw Error(`databaseName is null`);
 
-    return this.getDB(useDB).collection(collectionName);
+    return useDB;
+  };
+
+  /**
+   * Get the collection object
+   * @param commandArgs Caller command arguments
+   * @returns Collection Object
+   */
+  private getCollectionData = (commandArgs: MongoDBCommandInterface): any => {
+    const useDB = this.getDBName(commandArgs);
+
+    return this.getDB(useDB).collection(commandArgs.collectionName);
+  };
+
+  /**
+   * Get the database object
+   * @param commandArgs Caller command arguments
+   * @returns Collection Object
+   */
+  private getLocalDBObject = (commandArgs: MongoDBCommandInterface): any => {
+    const useDB = this.getDBName(commandArgs);
+
+    return this.getDB(useDB);
   };
 
   /**
@@ -229,11 +253,35 @@ class MongoDBHandler {
         funcRequireVal.getDataItem
       );
 
-      if (err) throw err;
+      if (err) reject(err);
 
       const collectionData = this.getCollectionData(commandArgs);
 
       retrieveDataItem(collectionData, commandArgs.query)
+        .then((data) => resolve(data))
+        .catch((e) => reject(e));
+    });
+
+  /**
+   * Retrieve multiple datas item from the request database collection based on a provided query
+   *
+   * @param commandArgs Command arguments, Required: CollectionName and Query
+   * @returns {Promise<any>} Returned data item || null
+   */
+  getDataItemsMany = (
+    commandArgs: MongoDBCommandInterface
+  ): Promise<any[] | null> =>
+    new Promise((resolve, reject) => {
+      const err = validateCommandParamPresence(
+        commandArgs /* Command arguments */,
+        funcRequireVal.getDataItemsMany
+      );
+
+      if (err) reject(err);
+
+      const collectionData = this.getCollectionData(commandArgs);
+
+      retrieveDataItemMany(collectionData, commandArgs.query)
         .then((data) => resolve(data))
         .catch((e) => reject(e));
     });
@@ -282,7 +330,7 @@ class MongoDBHandler {
 
       const collectionData = this.getCollectionData(commandArgs);
 
-      createDataItem(collectionData, commandArgs.data, commandArgs.options)
+      createDataItemMany(collectionData, commandArgs.data, commandArgs.options)
         .then((val) => resolve(val))
         .catch((e) => reject(e));
     });
@@ -363,7 +411,7 @@ class MongoDBHandler {
    * Determine number of data items in the collection.
    * Pass the MongoDB FilterQuery object to count items only matching the data query.
    * Pass options argument to use optional settings, see options listed: https://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#countDocuments
-   * @param commandArgs Command arguments, Required: collectionName & query, Optional: options
+   * @param commandArgs Command arguments, Required: collectionName, Optional: query & options
    * @returns {Promise<number>} Data item count (-1 if collection not found)
    */
   countDataItems = (commandArgs: MongoDBCommandInterface): Promise<number> =>
@@ -505,6 +553,56 @@ class MongoDBHandler {
 
       deleteDataItemMany(collectionData, query, options)
         .then((val) => resolve(val))
+        .catch((e) => reject(e));
+    });
+
+  /**
+   * Returns if a collection exists
+   * @param commandArgs Command arguments, Required: collectionName
+   * @returns {Promise<boolean>} Success
+   */
+  doesCollectionExist = (
+    commandArgs: MongoDBCommandInterface
+  ): Promise<boolean> =>
+    new Promise((resolve, reject) => {
+      const err = validateCommandParamPresence(
+        commandArgs /* Command arguments */,
+        funcRequireVal.createCollection
+      );
+
+      if (err) reject(err);
+
+      const databaseObject = this.getLocalDBObject(commandArgs);
+
+      const { collectionName } = commandArgs;
+
+      resolve(isCollectionPresent(databaseObject, collectionName));
+    });
+
+  /**
+   * Create a new collection
+   * Optional - Pass optional settings, see https://mongodb.github.io/node-mongodb-native/3.1/api/Db.html#createCollection
+   * @param commandArgs Command arguments, Required: collectionName, Optional: options
+   * @returns {Promise<boolean>} Success
+   */
+  createCollection = (commandArgs: MongoDBCommandInterface): Promise<boolean> =>
+    new Promise((resolve, reject) => {
+      const err = validateCommandParamPresence(
+        commandArgs /* Command arguments */,
+        funcRequireVal.createCollection
+      );
+
+      if (err) reject(err);
+
+      const databaseObject = this.getLocalDBObject(commandArgs);
+
+      const { collectionName, options } = commandArgs;
+
+      newCollection(databaseObject, collectionName, options)
+        .then((val) => {
+          if (val) resolve(true);
+          else resolve(false);
+        })
         .catch((e) => reject(e));
     });
 
