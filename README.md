@@ -126,6 +126,10 @@ Create a new collection, Command arguments, Required: `collectionName`, Optional
 
 Drop the entire collection, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
+### dropDatabase(databaseName)
+
+Drop the entire database. Database name is required.
+
 ## Exported Interfaces
 
 - MongoDBInterface : Used to initialise the MongoDB handler
