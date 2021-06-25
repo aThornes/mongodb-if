@@ -1,6 +1,6 @@
 {
   "name": "mongodb-if",
-  "version": "1.2.0",
+  "version": "1.2.1",
   "description": "MongoDB Interface",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -14,7 +14,11 @@
     "url": "https://github.com/aThornes/mongodb-if.git"
   },
   "keywords": [
-    "MongoDB"
+    "mongodb",
+    "backend",
+    "database",
+    "db",
+    "query"
   ],
   "author": "Adam Thornes <adamthornes96@gmail.com>",
   "license": "MIT",

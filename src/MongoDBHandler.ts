@@ -630,6 +630,30 @@ class MongoDBHandler {
         })
         .catch((e) => reject(e));
     });
+
+   /**
+   * Drop a database
+   * @param databaseName
+   * @returns {Promise<boolean>} Success
+   */
+  dropDatabase = (databaseName:string): Promise<boolean> => 
+    new Promise((resolve) => {
+      // Database name is required
+      if(!databaseName) resolve(false);
+
+      // Can only delete databases defined in the handler
+      if(!this.dbObj.dbNameList.includes(databaseName)) resolve(false);
+
+      const db = this.getDB(databaseName);
+
+      if(db){
+        db.dropDatabase().then(success => {
+          if(success) resolve(true);
+          else resolve(false);
+        });
+
+      } else resolve(false);
+    });
 }
 
 export default MongoDBHandler;

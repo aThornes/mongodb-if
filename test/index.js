@@ -102,6 +102,8 @@ const runTest = async () => {
         )
       )
       .catch((e) => console.error(e));
+  } else {
+    console.log('Could not rename since Test2Collection already exists');
   }
 
   /* Create a new capped collection */
@@ -124,6 +126,8 @@ const runTest = async () => {
           `${val ? 'Succesfully created' : 'Failed to create'} the collection`
         );
       });
+  } else {
+    console.log("Could not create since 'capped collection' already exists");
   }
 
   const curDate = new Date();
@@ -163,6 +167,16 @@ const runTest = async () => {
       /* Display first 3 */
       console.log(resp.slice(0, 3));
     });
+
+  /* Drop the database */
+  await handler.dropDatabase(handlerOptions.dbNameList[0]).then(success => {
+    console.log(`Drop database ${success ? 'successful': 'failed'}`)
+  });
+
+  /* Attempt to drop a different database*/
+  await handler.dropDatabase('admin').then(success => {
+    console.log(`Drop database ${success ? 'successful': 'failed'} (note: 'fail' is expected here)`)
+  });
 
   process.exit();
 };

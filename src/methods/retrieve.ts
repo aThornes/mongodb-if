@@ -115,17 +115,6 @@ export const isCollectionPresent = (
   }
   return false;
 };
-// new Promise((resolve, reject) => {
-//   if (databaseObject) {
-//     databaseObject
-//       .collection(collectionName)
-//       .then((val: any) => {
-//         if (val) resolve(true);
-//         else resolve(false);
-//       })
-//       .catch((e: any) => reject(e));
-//   }
-// });
 
 export const isCollectionCapped = (
   collectionData: any,
