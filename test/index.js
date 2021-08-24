@@ -1,12 +1,19 @@
 const { MongoDBHandler } = require('../dist/index');
 
+/**
+ * Test used to confirm if the mongo database is interacted with properly for MongoDBHandler functions
+ *
+ * Not used as a unit test (jest test) since a database is required.
+ *
+ */
+
 const handlerOptions = {
   connectionDomain: 'mongodb://127.0.0.1:27017',
   connectionOptions: {
     useNewUrlParser: true,
     useUnifiedTopology: true,
   },
-  dbNameList: ['TestDB'],
+  dbNameList: ['TestDB', 'other'],
   dbListOptions: [{ replicaSet: 'myRepl' }],
 };
 
@@ -43,14 +50,13 @@ const runTest = async () => {
       data: { name: 'John Doe', height: '1.87m', dob: '12/03/1873' },
     })
     .then((dataItem) => {
-      console.log('Succesfully added data item');
-      console.log(dataItem.ops);
+      console.log(`Succesfully added data item with id ${dataItem.insertedId}`);
     })
     .catch((e) => console.error(e));
 
   /* Get the number of items in the DB */
   await handler
-    .countDataItems({ collectionName })
+    .countDataItems({ query: { collectionName } })
     .then((val) => console.log(`${val} data items found in ${collectionName}`))
     .catch((e) => console.error(e));
 
@@ -149,6 +155,8 @@ const runTest = async () => {
       );
     });
 
+  console.log('Getting many items');
+
   /* Get 3 most recent records */
   await handler
     .getDataItemsMany({
@@ -169,13 +177,17 @@ const runTest = async () => {
     });
 
   /* Drop the database */
-  await handler.dropDatabase(handlerOptions.dbNameList[0]).then(success => {
-    console.log(`Drop database ${success ? 'successful': 'failed'}`)
+  await handler.dropDatabase(handlerOptions.dbNameList[0]).then((success) => {
+    console.log(`Drop database ${success ? 'successful' : 'failed'}`);
   });
 
   /* Attempt to drop a different database*/
-  await handler.dropDatabase('admin').then(success => {
-    console.log(`Drop database ${success ? 'successful': 'failed'} (note: 'fail' is expected here)`)
+  await handler.dropDatabase('admin').then((success) => {
+    console.log(
+      `Drop database ${
+        success ? 'successful' : 'failed'
+      } (note: 'fail' is expected here)`
+    );
   });
 
   process.exit();

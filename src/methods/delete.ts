@@ -1,8 +1,8 @@
-import { FilterQuery } from 'mongodb';
+import { CommandOperationOptions, Filter } from 'mongodb';
 
 export const deleteDataItemSingle = (
   collectionData: any,
-  query: FilterQuery<any> | undefined,
+  query: Filter<any> | undefined,
   options: any
 ): Promise<any> =>
   new Promise((resolve, reject) => {
@@ -19,7 +19,7 @@ export const deleteDataItemSingle = (
 
 export const deleteDataItemMany = (
   collectionData: any,
-  query: FilterQuery<any> | undefined,
+  query: Filter<any> | undefined,
   options: any
 ): Promise<any> =>
   new Promise((resolve, reject) => {
@@ -34,12 +34,13 @@ export const deleteDataItemMany = (
     } else resolve(null);
   });
 
-export const dropFullCollection = (collectionData: any, options: any) =>
+export const dropFullCollection = (
+  collectionData: any,
+  options: CommandOperationOptions
+) =>
   new Promise((resolve, reject) => {
     if (collectionData) {
-      let passOptions = options;
-      /* Session is only viable option (https://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#drop)*/
-      if (options && !options.session) passOptions = null;
+      /* https://mongodb.github.io/node-mongodb-native/4.0/classes/collection.html#drop */
 
       collectionData.drop(options, (err: any, result: any) => {
         if (err) reject(err);

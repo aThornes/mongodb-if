@@ -1,8 +1,8 @@
-import { FilterQuery } from 'mongodb';
+import { Filter, FindCursor } from 'mongodb';
 
 export const retrieveDataItem = (
   collectionData: any,
-  query: FilterQuery<any> | undefined
+  query: Filter<any> | undefined
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
@@ -21,23 +21,17 @@ export const retrieveDataItem = (
 
 export const retrieveDataItemMany = (
   collectionData: any,
-  query: FilterQuery<any> | undefined
+  query: Filter<any> | undefined
 ): Promise<any[] | null> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
       try {
-        collectionData.find(query, (err: any, cursor: any) => {
-          if (err) {
-            reject(err);
-            return;
-          }
-
-          if (cursor) {
-            cursor.toArray().then((arr: any) => {
-              resolve(arr);
-            });
-          } else resolve(null);
-        });
+        const cursor = collectionData.find(query);
+        if (cursor) {
+          cursor.toArray().then((arr: any) => {
+            resolve(arr);
+          });
+        } else resolve(null);
       } catch (e) {
         reject(e);
       }
@@ -73,7 +67,7 @@ export const retrieveFieldList = (
 
 export const countDocs = (
   collectionData: any,
-  query: FilterQuery<any> | undefined,
+  query: Filter<any> | undefined,
   options: any
 ): Promise<number> =>
   new Promise((resolve, reject) => {

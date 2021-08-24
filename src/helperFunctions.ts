@@ -1,5 +1,4 @@
-import { MongoDBListInterface, MongoDBCommandInterface } from './interfaces';
-import { MongoClient, MongoClientCommonOption } from 'mongodb';
+import { DbOptions, MongoClient } from 'mongodb';
 
 const hasValue = (val: any): boolean => {
   if (val === undefined || val === null) return false;
@@ -58,7 +57,7 @@ export const validateCommandParamPresence = (
 export const getDBList = (
   client: MongoClient,
   dbList: string[],
-  dbOptions: MongoClientCommonOption[]
+  dbOptions: DbOptions[]
 ): MongoDBListInterface[] => {
   const dbListObj: MongoDBListInterface[] = [];
 

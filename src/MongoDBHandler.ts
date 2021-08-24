@@ -1,11 +1,5 @@
 import { Db, MongoClient } from 'mongodb';
 
-import {
-  MongoDBInterface,
-  MongoDBListInterface,
-  MongoDBCommandInterface,
-} from './interfaces';
-
 import { validateCommandParamPresence, getDBList } from './helperFunctions';
 
 import {
@@ -168,8 +162,8 @@ class MongoDBHandler {
       MongoClient.connect(
         connectionDomain,
         connectionOptions,
-        (err: any, client: MongoClient) => {
-          if (err) {
+        (err, client) => {
+          if (err || client === undefined) {
             reject(err);
             return;
           }
@@ -427,6 +421,8 @@ class MongoDBHandler {
 
       const { query, options } = commandArgs;
 
+      console.log(query);
+
       countDocs(collectionData, query, options)
         .then((val) => resolve(val))
         .catch((e) => reject(e));
@@ -631,27 +627,26 @@ class MongoDBHandler {
         .catch((e) => reject(e));
     });
 
-   /**
+  /**
    * Drop a database
    * @param databaseName
    * @returns {Promise<boolean>} Success
    */
-  dropDatabase = (databaseName:string): Promise<boolean> => 
+  dropDatabase = (databaseName: string): Promise<boolean> =>
     new Promise((resolve) => {
       // Database name is required
-      if(!databaseName) resolve(false);
+      if (!databaseName) resolve(false);
 
       // Can only delete databases defined in the handler
-      if(!this.dbObj.dbNameList.includes(databaseName)) resolve(false);
+      if (!this.dbObj.dbNameList.includes(databaseName)) resolve(false);
 
       const db = this.getDB(databaseName);
 
-      if(db){
-        db.dropDatabase().then(success => {
-          if(success) resolve(true);
+      if (db) {
+        db.dropDatabase().then((success) => {
+          if (success) resolve(true);
           else resolve(false);
         });
-
       } else resolve(false);
     });
 }
