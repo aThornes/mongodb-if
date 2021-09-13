@@ -1,4 +1,5 @@
 import { DbOptions, MongoClient } from 'mongodb';
+import { MongoDBCommandInterface, MongoDBListInterface } from './types';
 
 const hasValue = (val: any): boolean => {
   if (val === undefined || val === null) return false;

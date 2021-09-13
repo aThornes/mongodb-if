@@ -25,6 +25,12 @@ import {
   retrieveFieldList,
 } from './methods/retrieve';
 
+import {
+  MongoDBCommandInterface,
+  MongoDBInterface,
+  MongoDBListInterface,
+} from './types';
+
 /**
  * Required function level values
  *

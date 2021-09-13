@@ -1,4 +1,4 @@
-import { Filter, FindCursor } from 'mongodb';
+import { Filter } from 'mongodb';
 
 export const retrieveDataItem = (
   collectionData: any,

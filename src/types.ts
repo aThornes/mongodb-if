@@ -1,16 +1,16 @@
-interface MongoDBInterface {
+export interface MongoDBInterface {
   connectionDomain: string;
   connectionOptions: import('mongodb').MongoClientOptions;
   dbNameList: string[];
   dbListOptions?: import('mongodb').DbOptions[];
 }
 
-interface MongoDBListInterface {
+export interface MongoDBListInterface {
   name: string;
   db: import('mongodb').Db;
 }
 
-interface MongoDBCommandInterface {
+export interface MongoDBCommandInterface {
   dbName?: string;
   collectionName: string;
   query?: import('mongodb').Filter<any>;
