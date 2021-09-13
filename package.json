@@ -1,6 +1,6 @@
 {
   "name": "mongodb-if",
-  "version": "1.3.0",
+  "version": "1.3.1",
   "description": "MongoDB Interface",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -20,6 +20,7 @@
     "db",
     "query"
   ],
+  "typings": "types.d.ts",
   "author": "Adam Thornes <adamthornes96@gmail.com>",
   "license": "MIT",
   "bugs": {
