@@ -6,6 +6,7 @@
   "types": "dist/index.d.ts",
   "scripts": {
     "prepublish": "npm run build",
+    "publish": "npm publish --access public",
     "build": "tsc",
     "test": "npx node test/index.js"
   },
