@@ -1,8 +1,6 @@
-import { Filter } from 'mongodb';
-
 export const retrieveDataItem = (
   collectionData: any,
-  query: Filter<any> | undefined
+  query: Record<string, any>
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
@@ -19,14 +17,33 @@ export const retrieveDataItem = (
     } else resolve(null);
   });
 
-export const retrieveDataItemMany = (
-  collectionData: any,
-  query: Filter<any> | undefined
-): Promise<any[] | null> =>
+export const retrieveDataItemMany = ({
+  collectionData,
+  query,
+  sortQuery,
+  limit,
+  skip,
+}: {
+  collectionData: any;
+  query: Record<string, any>;
+  sortQuery?: Record<string, any>;
+  limit?: number;
+  skip?: number;
+}): Promise<any[] | null> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
       try {
-        const cursor = collectionData.find(query);
+        const options: {
+          sort?: Record<string, any>;
+          skip?: number;
+          limit?: number;
+        } = {};
+
+        if (sortQuery) options.sort = sortQuery;
+        if (skip) options.skip = skip;
+        if (limit) options.limit = limit;
+
+        const cursor = collectionData.find(query, options);
         if (cursor) {
           cursor.toArray().then((arr: any) => {
             resolve(arr);
@@ -40,14 +57,14 @@ export const retrieveDataItemMany = (
 
 export const retrieveFieldList = (
   collectionData: any,
-  fieldName: string | undefined,
+  fieldName: '_id' | keyof Document,
   options: any
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
       collectionData.distinct(
         fieldName,
-        null,
+        {},
         options,
         (err: any, result: any) => {
           if (err) {
@@ -67,20 +84,20 @@ export const retrieveFieldList = (
 
 export const countDocs = (
   collectionData: any,
-  query: Filter<any> | undefined,
-  options: any
+  query?: Record<string, any>,
+  options?: any
 ): Promise<number> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
       collectionData.countDocuments(
-        query,
+        query || {},
         options,
-        (err: any, result: number) => {
+        (err: any, result: number | undefined) => {
           if (err) {
             reject(err);
             return;
           }
-          resolve(result);
+          resolve(result || -1);
         }
       );
     } else resolve(-1);

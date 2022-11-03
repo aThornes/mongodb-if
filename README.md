@@ -62,67 +62,71 @@ Return the MongoDB Client Object. Typically used for MongoDB commands that are n
 
 Return a MongoDB Database Object. Typically used for MongoDB commands that are not supported under this library (however issues and PRs are appreciated)
 
-### getDataItem(MongoDBCommandInterface)
+### getDataItem(HandlerGetItemSingle)
 
 Retrieve a data item, Command arguments, Required: `collectionName` and `Query`
 
-### getDataItemsMany(MongoDBCommandInterface)
+### getDataItemsMany(HandlerGetItemMany)
 
-Retrieve multiple data items, Command arguments, Required: `collectionName`, Optional: `Query`
+Retrieve multiple data items, Command arguments, Required: `collectionName`, Optional: `Query`, `limit`, `skip`, `sort`
 
-### addDataItem(MongoDBCommandInterface)
+- limit: Pass a number to restrict number of items retrieved
+- skip: Pass a number to skip to first x matching results
+- Sort: Pass an object for a field to sort by, use `1` for ascending, `-1` for descending. E.g. `{ age: 1 }`
+
+### addDataItem(HandlerAddItem)
 
 Add a data item, Command arguments, Required: `collectionName` and `data`, Optional: `options`
 
-### addMultipleDataItems(MongoDBCommandInterface)
+### addMultipleDataItems(HandlerAddItemMultiple)
 
 Add multiple data items, Command arguments, Required: `collectionName` and `data`, Optional: `options`
 
-### modifyDataItem(MongoDBCommandInterface)
+### modifyDataItem(HandlerEditItem)
 
 Append to a data item, Command arguments, Required: `collectionName`, `query` and `Data`, Optional: `options`
 
-### countDataItems(MongoDBCommandInterface)
+### countDataItems(HandlerCountItems)
 
 Determine number of data items in the database collection, Command arguments, Required: `collectionName`, Optional: `query` & `options`
 
-### isCapped(MongoDBCommandInterface)
+### isCapped(HandlerIsCapped)
 
 Returns whether the collection is capped or not, Command arguments, Required: `collectionName`, Optional: `options`
 
-### getOptions(MongoDBCommandInterface)
+### getOptions(HandlerGetOptions)
 
 Returns collection options, Command arguments, Required: `collectionName`, Optional: `options`
 
-### getFieldList(MongoDBCommandInterface)
+### getFieldList(HandlerGetFieldList)
 
 Retrieve every value with the matching field (database key) as a list, Command arguments, Required: `collectionName` & `fieldName`, Optional: `options`
 
-### getIndexes(MongoDBCommandInterface)
+### getIndices(HandlerGetindices)
 
 Returns an array that holds a list of documents that identify and describe the existing indexes on the collection, Command arguments, Required: `collectionName`, Optional: `options`
 
-### renameCollection(MongoDBCommandInterface)
+### renameCollection(HandlerRenameColleciton)
 
 Rename a collection Command arguments, Required: `collectionName`, `fieldName` (new collection name), Optional: `options`
 
-### deleteItemSingle(MongoDBCommandInterface)
+### deleteItemSingle(HandlerDeleteItem)
 
 Delete a single item as defined by the passed query, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
-### deleteItemMany(MongoDBCommandInterface)
+### deleteItemMany(HandlerDeleteItem)
 
 Delete all items matching the passed query, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
-### doesCollectionExist(MongoDBCommandInterface)
+### doesCollectionExist(HandlerBaseRequest)
 
 Check if a collection exists in the DB, Command arguments, Required: `collectionName`
 
-### createCollection(MongoDBCommandInterface)
+### createCollection(HandlerModifyCollection)
 
 Create a new collection, Command arguments, Required: `collectionName`, Optional: `options`
 
-### dropCollection(MongoDBCommandInterface)
+### dropCollection(HandlerModifyCollection)
 
 Drop the entire collection, Command arguments, Required: `collectionName` & `query`, Optional: `options`
 
