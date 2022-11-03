@@ -36,7 +36,7 @@ export const deleteDataItemMany = (
 
 export const dropFullCollection = (
   collectionData: any,
-  options: CommandOperationOptions
+  options?: Record<string, any>
 ) =>
   new Promise((resolve, reject) => {
     if (collectionData) {

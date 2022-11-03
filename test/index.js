@@ -1,9 +1,9 @@
 const { MongoDBHandler } = require('../dist/index');
 
 /**
- * Test used to confirm if the mongo database is interacted with properly for MongoDBHandler functions
+ * Integration Test used to confirm if the mongo database is interacted with properly for MongoDBHandler functions
  *
- * Not used as a unit test (jest test) since a database is required.
+ * Note: Not used as a unit test (jest test) since a database is required.
  *
  */
 
@@ -44,20 +44,54 @@ const runTest = async () => {
   }
 
   /* Add an item to the DB */
-  await handler
-    .addDataItem({
-      collectionName,
-      data: { name: 'John Doe', height: '1.87m', dob: '12/03/1873' },
-    })
-    .then((dataItem) => {
-      console.log(`Succesfully added data item with id ${dataItem.insertedId}`);
-    })
-    .catch((e) => console.error(e));
+  // await handler
+  //   .addDataItem({
+  //     collectionName,
+  //     data: { name: 'John Doe', height: '1.87m', dob: '12/03/1873' },
+  //   })
+  //   .then((dataItem) => {
+  //     console.log(`Succesfully added data item with id ${dataItem.insertedId}`);
+  //   })
+  //   .catch((e) => console.error(e));
 
   /* Get the number of items in the DB */
   await handler
-    .countDataItems({ query: { collectionName } })
+    .countDataItems({ collectionName })
     .then((val) => console.log(`${val} data items found in ${collectionName}`))
+    .catch((e) => console.error(e));
+
+  // // const newData = new Array(10)
+  // //   .fill({
+  // //     name: 'John Doe',
+  // //     height: '1.87m',
+  // //     dob: '12/03/1873',
+  // //   })
+  // //   .map((x, i) => ({ ...x, index: 100 - i }));
+
+  // /* Add many items to the DB */
+  // // await handler
+  // //   .addMultipleDataItems({
+  // //     collectionName,
+  // //     data: newData,
+  // //   })
+  // //   .then((dataItem) => {
+  // //     console.log(`Succesfully added data item with id ${dataItem.insertedId}`);
+  // //   })
+  // //   .catch((e) => console.error(e));
+
+  await handler
+    .countDataItems({ collectionName })
+    .then((val) => console.log(`${val} data items found in ${collectionName}`))
+    .catch((e) => console.error(e));
+
+  await handler
+    .getDataItemsMany({
+      collectionName,
+      limit: 10,
+      skip: 0,
+      sort: { index: -1 },
+    })
+    .then((vals) => console.log(vals))
     .catch((e) => console.error(e));
 
   /* Get a list of all names in DB */
@@ -77,7 +111,7 @@ const runTest = async () => {
 
   /* Get all indices from the collection */
   await handler
-    .getIndexes({ collectionName })
+    .getIndices({ collectionName })
     .then((val) => console.log(val))
     .catch((e) => console.error(e));
 

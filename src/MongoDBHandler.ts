@@ -1,6 +1,6 @@
 import { Db, MongoClient } from 'mongodb';
 
-import { validateCommandParamPresence, getDBList } from './helperFunctions';
+import { getDBList } from './helperFunctions';
 
 import {
   createDataItem,
@@ -12,6 +12,7 @@ import {
   deleteDataItemMany,
   dropFullCollection,
 } from './methods/delete';
+
 import { modifyDataItemSingle, renameCol } from './methods/modify';
 
 import {
@@ -26,33 +27,25 @@ import {
 } from './methods/retrieve';
 
 import {
-  MongoDBCommandInterface,
+  HandlerAddItemMultiple,
+  HandlerBaseRequest,
+  HandlerCountItems,
+  HandlerDeleteItem,
+  HandlerEditItem,
+  HandlerGetCollection,
+  HandlerGetFieldList,
+  HandlerGetindices,
+  HandlerGetItemMany,
+  HandlerGetItemSingle,
+  HandlerGetName,
+  HandlerGetOptions,
+  HandlerIsCapped,
+  HandlerModifyCollection,
+  HandlerRenameColleciton,
   MongoDBInterface,
   MongoDBListInterface,
 } from './types';
 
-/**
- * Required function level values
- *
- * Each bit refers to the interface MongoDBCommandInterface parameter
- * - If a pameter is required, 1 should be passed
- * - If not required, 0 should be passed
- */
-const funcRequireVal = {
-  getDataItem: 0x011000,
-  getDataItemsMany: 0x010000,
-  getRecentItems: 0x010100,
-  addDataItem: 0x010100,
-  appendDataItem: 0x011100,
-  isCapped: 0x010000,
-  countDataItems: 0x010000,
-  getFieldList: 0x010010,
-  getIndices: 0x010000,
-  deleteSingleItem: 0x011000,
-  deleteItemMany: 0x011000,
-  dropCollection: 0x011000,
-  createCollection: 0x010000,
-};
 class MongoDBHandler {
   dbClientObj: MongoClient | null;
   dbObj: MongoDBInterface;
@@ -115,10 +108,10 @@ class MongoDBHandler {
       );
   };
 
-  private getDBName = (commandArgs: MongoDBCommandInterface): any => {
+  private getDBName = ({ dbName }: HandlerGetName): string => {
     this.checkConnectionActive();
 
-    let useDB = commandArgs.dbName;
+    let useDB = dbName;
 
     if (!useDB && this.dbList && this.dbList[0]) {
       useDB = this.dbList[0].name;
@@ -134,10 +127,13 @@ class MongoDBHandler {
    * @param commandArgs Caller command arguments
    * @returns Collection Object
    */
-  private getCollectionData = (commandArgs: MongoDBCommandInterface): any => {
-    const useDB = this.getDBName(commandArgs);
+  private getCollectionData = ({
+    dbName,
+    collectionName,
+  }: HandlerGetCollection) => {
+    const useDB = this.getDBName({ dbName });
 
-    return this.getDB(useDB).collection(commandArgs.collectionName);
+    return this.getDB(useDB).collection(collectionName);
   };
 
   /**
@@ -145,8 +141,8 @@ class MongoDBHandler {
    * @param commandArgs Caller command arguments
    * @returns Collection Object
    */
-  private getLocalDBObject = (commandArgs: MongoDBCommandInterface): any => {
-    const useDB = this.getDBName(commandArgs);
+  private getLocalDBObject = ({ dbName }: HandlerGetName): any => {
+    const useDB = this.getDBName({ dbName });
 
     return this.getDB(useDB);
   };
@@ -156,7 +152,7 @@ class MongoDBHandler {
    * @see https://mongodb.github.io/node-mongodb-native/3.1/api/MongoClient.html
    * @returns Success
    */
-  connect = (): Promise<boolean> =>
+  connect = async (): Promise<boolean> =>
     new Promise((resolve, reject) => {
       /* Destructure Interface */
       const { connectionDomain, connectionOptions, dbNameList, dbListOptions } =
@@ -243,169 +239,125 @@ class MongoDBHandler {
    *
    * If multiple items match the query, the first instance will be returned
    *
-   * @param commandArgs Command arguments, Required: CollectionName and Query
    * @returns {Promise<any>} Returned data item || null
    */
-  getDataItem = (commandArgs: MongoDBCommandInterface): Promise<any> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.getDataItem
-      );
+  getDataItem = ({
+    query,
+    dbName,
+    collectionName,
+  }: HandlerGetItemSingle): Promise<any> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      retrieveDataItem(collectionData, commandArgs.query)
-        .then((data) => resolve(data))
-        .catch((e) => reject(e));
-    });
+    return retrieveDataItem(collectionData, query);
+  };
 
   /**
    * Retrieve multiple datas item from the request database collection based on a provided query
    *
-   * @param commandArgs Command arguments, Required: CollectionName and Query
    * @returns {Promise<any>} Returned data item || null
    */
-  getDataItemsMany = (
-    commandArgs: MongoDBCommandInterface
-  ): Promise<any[] | null> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.getDataItemsMany
-      );
+  getDataItemsMany = ({
+    dbName,
+    collectionName,
+    query,
+    sort,
+    skip,
+    limit,
+  }: HandlerGetItemMany): Promise<any[] | null> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      retrieveDataItemMany(collectionData, commandArgs.query)
-        .then((data) => resolve(data))
-        .catch((e) => reject(e));
+    return retrieveDataItemMany({
+      collectionData,
+      query,
+      sortQuery: sort,
+      limit,
+      skip,
     });
+  };
 
   /**
    * Input a single data item into the collection
    *
-   * @param commandArgs Command arguments, Required: collectionName and data, Optional: options
    * @returns {Promise<any>} Created data item || null
    */
-  addDataItem = (commandArgs: MongoDBCommandInterface): Promise<any> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.addDataItem
-      );
+  addDataItem = ({
+    dbName,
+    collectionName,
+    data,
+    options,
+  }: HandlerAddItemMultiple): Promise<any> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      createDataItem(collectionData, commandArgs.data, commandArgs.options)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+    return createDataItem(collectionData, data, options);
+  };
 
   /**
    * Input multiple data items into the collection
    *
-   * @param commandArgs Command arguments, Required: collectionName and data, Optional: options
    * @returns {Promise<any>} Created data items
    */
-  addMultipleDataItems = (commandArgs: MongoDBCommandInterface): Promise<any> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.addDataItem
+  addMultipleDataItems = ({
+    dbName,
+    collectionName,
+    data,
+    options,
+  }: HandlerAddItemMultiple): Promise<any> => {
+    if (!Array.isArray(data))
+      throw Error(
+        'Data items must be passed as an array, if you mean to submit a single item, please use .addDataItem() instead.'
       );
 
-      if (err) reject(err);
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (!Array.isArray(commandArgs.data))
-        throw Error(
-          'Data items must be passed as an array, if you mean to submit a single item, please use .addDataItem() instead.'
-        );
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      createDataItemMany(collectionData, commandArgs.data, commandArgs.options)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+    return createDataItemMany(collectionData, data, options);
+  };
 
   /**
    * Update a single data item in the collection
    *
-   * @param commandArgs Command arguments, Required: collectionName, query and Data, Optional: options
    * @returns {Promise<any>} Modified data item || null
    */
-  modifyDataItem = (commandArgs: MongoDBCommandInterface): Promise<any> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.appendDataItem
-      );
+  modifyDataItem = ({
+    dbName,
+    collectionName,
+    query,
+    data,
+  }: HandlerEditItem): Promise<any> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      const { query, data } = commandArgs;
-
-      modifyDataItemSingle(collectionData, query, data)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+    return modifyDataItemSingle(collectionData, query, data);
+  };
 
   /**
    * Determine whether a collection is capped
-   * @param commandArgs Command arguments, Required: collectionName, Optional: options
    * @returns {Promise<boolean>} isCapped
    */
-  isCapped = (commandArgs: MongoDBCommandInterface): Promise<boolean> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.isCapped
-      );
+  isCapped = async ({
+    dbName,
+    collectionName,
+    options,
+  }: HandlerIsCapped): Promise<boolean> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
+    const isCapped = await isCollectionCapped(collectionData, options);
 
-      const collectionData = this.getCollectionData(commandArgs);
-
-      isCollectionCapped(collectionData, commandArgs.options)
-        .then((val) => {
-          if (val) {
-            resolve(true);
-            return;
-          }
-          resolve(false);
-        })
-        .catch((e) => reject(e));
-    });
+    if (isCapped) return true;
+    return false;
+  };
 
   /**
    * Get the options of the collection
-   * @param commandArgs Command arguments, Required: collectionName, Optional: options
    * @returns {Promise<any>} Collection options
    */
-  getOptions = (commandArgs: MongoDBCommandInterface): Promise<boolean> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.isCapped
-      );
+  getOptions = ({
+    dbName,
+    collectionName,
+    options,
+  }: HandlerGetOptions): Promise<boolean> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      getCollectionOptions(collectionData, commandArgs.options)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+    return getCollectionOptions(collectionData, options);
+  };
 
   /**
    * Determine number of data items in the collection.
@@ -414,224 +366,153 @@ class MongoDBHandler {
    * @param commandArgs Command arguments, Required: collectionName, Optional: query & options
    * @returns {Promise<number>} Data item count (-1 if collection not found)
    */
-  countDataItems = (commandArgs: MongoDBCommandInterface): Promise<number> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.countDataItems
-      );
+  countDataItems = ({
+    dbName,
+    collectionName,
+    query,
+    options,
+  }: HandlerCountItems): Promise<number> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      const { query, options } = commandArgs;
-
-      console.log(query);
-
-      countDocs(collectionData, query, options)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+    return countDocs(collectionData, query, options);
+  };
 
   /**
    * Return's a list of values with key identifiers matching that as defined in fieldName
    *
-   * @param commandArgs Command arguments, Required: collectionName & fieldName, Optional: options
    * @returns {Promise<any[]>} Value list || null
    */
-  getFieldList = (commandArgs: MongoDBCommandInterface): Promise<any> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.getFieldList
-      );
+  getFieldList = ({
+    dbName,
+    collectionName,
+    fieldName,
+    options,
+  }: HandlerGetFieldList): Promise<any> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
+    return retrieveFieldList(
+      collectionData,
+      fieldName as keyof Document,
+      options
+    );
+  };
 
-      const collectionData = this.getCollectionData(commandArgs);
-
-      retrieveFieldList(
-        collectionData,
-        commandArgs.fieldName,
-        commandArgs.options
-      )
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+  /**
+   * @deprecated Since version 1.4. Will be deleted in version 2.0. Please use getIndices()
+   */
+  getIndexes = (params: HandlerGetindices) => this.getIndices(params);
 
   /**
    * Returns an array that holds a list of documents that identify and describe the existing indexes on the collection
-   * @param commandArgs Command arguments, Required: collectionName, Optional: options
    * @returns {Promise<any>} Index information
    */
-  getIndexes = (commandArgs: MongoDBCommandInterface): Promise<string[]> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.getIndices
-      );
+  getIndices = ({
+    dbName,
+    collectionName,
+    fieldName,
+  }: HandlerGetindices): Promise<string[]> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      getIndexList(collectionData, commandArgs.fieldName)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+    return getIndexList(collectionData, fieldName);
+  };
 
   /**
    * Rename the requested collection
-   * @param commandArgs Command arguments, Required: collectionName, fieldName (new collection name), Optional: options
    * @returns
    */
-  renameCollection = (commandArgs: MongoDBCommandInterface): Promise<boolean> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.getIndices
-      );
+  renameCollection = async ({
+    dbName,
+    collectionName,
+    fieldName,
+    options,
+  }: HandlerRenameColleciton): Promise<boolean> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
+    const resp = await renameCol(collectionData, fieldName, options);
 
-      const collectionData = this.getCollectionData(commandArgs);
-
-      const { fieldName, options } = commandArgs;
-
-      renameCol(collectionData, fieldName, options)
-        .then((val) => {
-          if (val) {
-            resolve(true);
-            return;
-          }
-          resolve(false);
-        })
-        .catch((e) => reject(e));
-    });
+    if (resp) return true;
+    return false;
+  };
 
   /**
    * Delete a single item matching the provided query
    *
-   * @param commandArgs Command arguments, Required: collectionName & query, Optional: options
    * @returns {Promise<boolean>} Success result (typically boolean) || null
    */
-  deleteItemSingle = (commandArgs: MongoDBCommandInterface): Promise<any> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.deleteSingleItem
-      );
+  deleteItemSingle = ({
+    dbName,
+    collectionName,
+    query,
+    options,
+  }: HandlerDeleteItem): Promise<any> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      const { query, options } = commandArgs;
-
-      deleteDataItemSingle(collectionData, query, options)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
-
+    return deleteDataItemSingle(collectionData, query, options);
+  };
   /**
    * Delete all items matching the provided query
    *
-   * @param commandArgs Command arguments, Required: collectionName & query, Optional: options
    * @returns {Promise<boolean>} Success result (typically boolean) || null
    */
-  deleteItemMany = (commandArgs: MongoDBCommandInterface): Promise<any> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.deleteItemMany
-      );
+  deleteItemMany = ({
+    dbName,
+    collectionName,
+    query,
+    options,
+  }: HandlerDeleteItem): Promise<any> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
-
-      const collectionData = this.getCollectionData(commandArgs);
-
-      const { query, options } = commandArgs;
-
-      deleteDataItemMany(collectionData, query, options)
-        .then((val) => resolve(val))
-        .catch((e) => reject(e));
-    });
+    return deleteDataItemMany(collectionData, query, options);
+  };
 
   /**
    * Returns if a collection exists
-   * @param commandArgs Command arguments, Required: collectionName
    * @returns {Promise<boolean>} Success
    */
-  doesCollectionExist = (
-    commandArgs: MongoDBCommandInterface
-  ): Promise<boolean> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.createCollection
-      );
+  doesCollectionExist = ({
+    dbName,
+    collectionName,
+  }: HandlerBaseRequest): boolean => {
+    const databaseObject = this.getLocalDBObject({ dbName });
 
-      if (err) reject(err);
-
-      const databaseObject = this.getLocalDBObject(commandArgs);
-
-      const { collectionName } = commandArgs;
-
-      resolve(isCollectionPresent(databaseObject, collectionName));
-    });
+    return isCollectionPresent(databaseObject, collectionName);
+  };
 
   /**
    * Create a new collection
    * Optional - Pass optional settings, see https://mongodb.github.io/node-mongodb-native/3.1/api/Db.html#createCollection
-   * @param commandArgs Command arguments, Required: collectionName, Optional: options
    * @returns {Promise<boolean>} Success
    */
-  createCollection = (commandArgs: MongoDBCommandInterface): Promise<boolean> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.createCollection
-      );
+  createCollection = async ({
+    dbName,
+    collectionName,
+    options,
+  }: HandlerModifyCollection): Promise<boolean> => {
+    const databaseObject = this.getLocalDBObject({ dbName });
 
-      if (err) reject(err);
+    const resp = await newCollection(databaseObject, collectionName, options);
 
-      const databaseObject = this.getLocalDBObject(commandArgs);
-
-      const { collectionName, options } = commandArgs;
-
-      newCollection(databaseObject, collectionName, options)
-        .then((val) => {
-          if (val) resolve(true);
-          else resolve(false);
-        })
-        .catch((e) => reject(e));
-    });
+    if (resp) return true;
+    return false;
+  };
 
   /**
    * Drop the entire collection.
    * Optional - Pass optional settings, see https://mongodb.github.io/node-mongodb-native/3.1/api/Collection.html#drop
-   * @param commandArgs Command arguments, Required: collectionName & query, Optional: options
    * @returns {Promise<boolean>} Success
    */
-  dropCollection = (commandArgs: MongoDBCommandInterface): Promise<boolean> =>
-    new Promise((resolve, reject) => {
-      const err = validateCommandParamPresence(
-        commandArgs /* Command arguments */,
-        funcRequireVal.dropCollection
-      );
+  dropCollection = async ({
+    dbName,
+    collectionName,
+    options,
+  }: HandlerModifyCollection): Promise<boolean> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
 
-      if (err) reject(err);
+    const resp = await dropFullCollection(collectionData, options);
 
-      const collectionData = this.getCollectionData(commandArgs);
-
-      dropFullCollection(collectionData, commandArgs.options)
-        .then((val) => {
-          if (val) resolve(true);
-          else resolve(false);
-        })
-        .catch((e) => reject(e));
-    });
+    if (resp) return true;
+    return false;
+  };
 
   /**
    * Drop a database
