@@ -56,7 +56,7 @@ export interface HandlerAddItemMultiple extends HandlerBaseRequest {
 
 export interface HandlerEditItem extends HandlerBaseRequest {
   query: import('mongodb').Filter<any>;
-  data: Record<string, any>[];
+  data: Record<string, any>;
   options?: Record<string, any>;
 }
 
