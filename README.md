@@ -138,7 +138,6 @@ Drop the entire database. Database name is required.
 
 - MongoDBInterface : Used to initialise the MongoDB handler
 - MongoDBListInterface : Stores information about each database
-- MongoDBCommandInterface : Used to pass MongoDB command parmeters
 
 ## Examples
 
