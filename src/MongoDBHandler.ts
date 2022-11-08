@@ -27,6 +27,7 @@ import {
 } from './methods/retrieve';
 
 import {
+  HandlerAddItem,
   HandlerAddItemMultiple,
   HandlerBaseRequest,
   HandlerCountItems,
@@ -285,7 +286,7 @@ class MongoDBHandler {
     collectionName,
     data,
     options,
-  }: HandlerAddItemMultiple): Promise<any> => {
+  }: HandlerAddItem): Promise<any> => {
     const collectionData = this.getCollectionData({ dbName, collectionName });
 
     return createDataItem(collectionData, data, options);
