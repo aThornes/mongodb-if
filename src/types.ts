@@ -76,6 +76,7 @@ export interface HandlerCountItems extends HandlerBaseRequest {
 export interface HandlerGetFieldList extends HandlerBaseRequest {
   fieldName: string;
   options?: Record<string, any>;
+  query?: Record<string, any>;
 }
 
 export interface HandlerGetindices extends HandlerBaseRequest {

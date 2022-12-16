@@ -58,13 +58,14 @@ export const retrieveDataItemMany = ({
 export const retrieveFieldList = (
   collectionData: any,
   fieldName: '_id' | keyof Document,
+  query: Record<string, any>,
   options: any
 ): Promise<any> =>
   new Promise((resolve, reject) => {
     if (collectionData) {
       collectionData.distinct(
         fieldName,
-        {},
+        query,
         options,
         (err: any, result: any) => {
           if (err) {
@@ -72,10 +73,7 @@ export const retrieveFieldList = (
             return;
           }
           if (result && Array.isArray(result)) {
-            const resultArr: any[] = [];
-
-            for (let n = 0; n < result.length; n++) resultArr.push(result[n]);
-            resolve(resultArr);
+            resolve(result);
           } else resolve(null);
         }
       );

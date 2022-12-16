@@ -84,7 +84,11 @@ Add multiple data items, Command arguments, Required: `collectionName` and `data
 
 ### modifyDataItem(HandlerEditItem)
 
-Append to a data item, Command arguments, Required: `collectionName`, `query` and `Data`, Optional: `options`
+Modify or append a data item, Command arguments, Required: `collectionName`, `query` and `Data`, Optional: `options`
+
+### modifyDataItemsMany(HandlerEditItem)
+
+Modify or append multiple data items matching query, Command arguments, Required: `collectionName`, `query` and `Data`, Optional: `options`
 
 ### countDataItems(HandlerCountItems)
 
@@ -100,7 +104,7 @@ Returns collection options, Command arguments, Required: `collectionName`, Optio
 
 ### getFieldList(HandlerGetFieldList)
 
-Retrieve every value with the matching field (database key) as a list, Command arguments, Required: `collectionName` & `fieldName`, Optional: `options`
+Retrieve every value with the matching field (database key) as a list, Command arguments, Required: `collectionName` & `fieldName`, Optional: `options`, `query`
 
 ### getIndices(HandlerGetindices)
 
