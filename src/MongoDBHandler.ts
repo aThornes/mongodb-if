@@ -13,7 +13,11 @@ import {
   dropFullCollection,
 } from './methods/delete';
 
-import { modifyDataItemSingle, renameCol } from './methods/modify';
+import {
+  modifyDataItemSingle,
+  modifyDataItemsMany,
+  renameCol,
+} from './methods/modify';
 
 import {
   countDocs,
@@ -330,6 +334,22 @@ class MongoDBHandler {
   };
 
   /**
+   * Update a multiple data item in the collection
+   *
+   * @returns {Promise<any[]>} Modified data item array || null
+   */
+  modifyDataItemsMany = ({
+    dbName,
+    collectionName,
+    query,
+    data,
+  }: HandlerEditItem): Promise<any> => {
+    const collectionData = this.getCollectionData({ dbName, collectionName });
+
+    return modifyDataItemsMany(collectionData, query, data);
+  };
+
+  /**
    * Determine whether a collection is capped
    * @returns {Promise<boolean>} isCapped
    */
@@ -386,6 +406,7 @@ class MongoDBHandler {
   getFieldList = ({
     dbName,
     collectionName,
+    query,
     fieldName,
     options,
   }: HandlerGetFieldList): Promise<any> => {
@@ -394,6 +415,7 @@ class MongoDBHandler {
     return retrieveFieldList(
       collectionData,
       fieldName as keyof Document,
+      query || {},
       options
     );
   };

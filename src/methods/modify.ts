@@ -16,6 +16,22 @@ export const modifyDataItemSingle = (
     } else resolve(null);
   });
 
+export const modifyDataItemsMany = (
+  collectionData: any,
+  query: Filter<any> | undefined,
+  data: any
+): Promise<any> =>
+  new Promise((resolve, reject) => {
+    if (collectionData) {
+      collectionData
+        .updateMany(query, { $set: data })
+        .then((dataItems: any[]) => {
+          resolve(dataItems);
+        })
+        .catch((e: any) => reject(e));
+    } else resolve(null);
+  });
+
 export const renameCol = (
   collectionData: any,
   field: string | undefined,
